@@ -5,10 +5,13 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 flutter_bin="${FLUTTER_BIN:-}"
 
 if [[ -z "$flutter_bin" ]]; then
-  if [[ -x "$repo_root/flutterw" ]]; then
+  if [[ -x "$repo_root/.flutter/bin/flutter" && -x "$repo_root/flutterw" ]]; then
     flutter_bin="$repo_root/flutterw"
+  elif command -v flutter >/dev/null 2>&1; then
+    flutter_bin="$(command -v flutter)"
   else
-    flutter_bin="flutter"
+    echo "No usable Flutter binary found. Set FLUTTER_BIN or install Flutter." >&2
+    exit 1
   fi
 fi
 
