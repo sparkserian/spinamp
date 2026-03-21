@@ -2,6 +2,11 @@ name: Desktop Artifacts
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub release tag to upload the Windows artifact to
+        required: true
+        type: string
   push:
     tags:
       - "v*"
@@ -10,6 +15,8 @@ jobs:
   build-windows-artifact:
     name: Release Windows Artifact
     runs-on: windows-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
     steps:
     - uses: actions/checkout@v4
     - uses: subosito/flutter-action@v2
@@ -26,7 +33,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        tag="${GITHUB_REF_NAME}"
+        tag="${RELEASE_TAG}"
         if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
           gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "$tag" --generate-notes
         fi
@@ -34,4 +41,4 @@ jobs:
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload "${GITHUB_REF_NAME}" dist/*.zip --repo "$GITHUB_REPOSITORY" --clobber
+      run: gh release upload "${RELEASE_TAG}" dist/*.zip --repo "$GITHUB_REPOSITORY" --clobber
