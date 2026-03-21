@@ -25,6 +25,12 @@ jobs:
     - uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.27.1'
+    - name: Install Inno Setup
+      shell: pwsh
+      run: |
+        if (-not (Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe') -and -not (Test-Path 'C:\Program Files\Inno Setup 6\ISCC.exe')) {
+          choco install innosetup --no-progress -y
+        }
     - run: flutter pub get
     - shell: pwsh
       run: ./scripts/package_windows_release.ps1 -FlutterBin flutter
@@ -40,8 +46,19 @@ jobs:
         if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
           gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "$tag" --generate-notes
         fi
+    - name: Remove older Windows release assets
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release view "${RELEASE_TAG}" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[] | select(.name | test("^spinamp-windows-.*\\.(zip|msix|exe)$")) | .name' |
+        while IFS= read -r asset; do
+          if [ -n "$asset" ]; then
+            gh release delete-asset "${RELEASE_TAG}" "$asset" --repo "$GITHUB_REPOSITORY" -y
+          fi
+        done
     - name: Upload Windows release asset
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload "${RELEASE_TAG}" dist/*.msix --repo "$GITHUB_REPOSITORY" --clobber
+      run: gh release upload "${RELEASE_TAG}" dist/*.exe --repo "$GITHUB_REPOSITORY" --clobber

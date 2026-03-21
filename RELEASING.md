@@ -30,6 +30,6 @@ git push origin v0.9.7-107
 
 The `Desktop Artifacts` GitHub Actions workflow will:
 - build the Windows release bundle
-- package `dist/spinamp-windows-installer-v<version>.msix`
+- package `dist/spinamp-windows-installer-v<version>.exe`
 - create the GitHub release if it does not already exist
 - upload the Windows asset to that release
