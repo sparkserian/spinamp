@@ -15,17 +15,17 @@
 This will:
 - build the macOS app
 - package `dist/spinamp-macos-v<version>.dmg`
-- create or update the GitHub release for the current app version tag
+- create or update the GitHub release for the current version tag
 - upload the DMG asset
 
 ## Windows release
 
 1. Push the code to the `spinamp` GitHub repository.
-2. Push a tag matching the app version, for example:
+2. Push a tag matching the release tag format, for example:
 
 ```bash
-git tag v0.9.7+107
-git push origin v0.9.7+107
+git tag v0.9.7-107
+git push origin v0.9.7-107
 ```
 
 The `Desktop Artifacts` GitHub Actions workflow will:

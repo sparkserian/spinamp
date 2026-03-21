@@ -20,6 +20,13 @@ case "${1:-raw}" in
   raw)
     printf '%s\n' "$version_line"
     ;;
+  tag)
+    if [[ -n "$build_number" ]]; then
+      printf 'v%s-%s\n' "$build_name" "$build_number"
+    else
+      printf 'v%s\n' "$build_name"
+    fi
+    ;;
   build-name)
     printf '%s\n' "$build_name"
     ;;

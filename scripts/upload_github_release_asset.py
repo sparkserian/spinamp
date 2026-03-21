@@ -72,7 +72,7 @@ def main() -> None:
 
     repo_root = pathlib.Path(__file__).resolve().parents[1]
     version_script = repo_root / "scripts" / "release_version.sh"
-    default_tag = subprocess.check_output([str(version_script), "artifact"], text=True).strip()
+    default_tag = subprocess.check_output([str(version_script), "tag"], text=True).strip()
     tag_name = sys.argv[2] if len(sys.argv) > 2 else default_tag
 
     owner = os.environ.get("GH_RELEASE_OWNER", "").strip()
