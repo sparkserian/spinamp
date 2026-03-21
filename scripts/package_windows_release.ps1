@@ -15,7 +15,8 @@ if ([string]::IsNullOrWhiteSpace($VersionLine)) {
 
 $ArtifactVersion = "v$VersionLine"
 $DistDir = Join-Path $RepoRoot "dist"
-$ArtifactPath = Join-Path $DistDir "spinamp-windows-$ArtifactVersion.zip"
+$ArtifactName = "spinamp-windows-installer-$ArtifactVersion"
+$ArtifactPath = Join-Path $DistDir "$ArtifactName.msix"
 $BundleDir = Join-Path $RepoRoot "build\windows\x64\runner\Release"
 
 New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
@@ -28,6 +29,10 @@ if (-not (Test-Path $ExePath)) {
     throw "Expected Windows executable was not produced at $ExePath"
 }
 
-Compress-Archive -Path (Join-Path $BundleDir '*') -DestinationPath $ArtifactPath -Force
+& dart run msix:create --output-path $DistDir --output-name $ArtifactName
+
+if (-not (Test-Path $ArtifactPath)) {
+    throw "Expected Windows installer was not produced at $ArtifactPath"
+}
 
 Write-Output $ArtifactPath
