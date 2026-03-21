@@ -14,4 +14,8 @@ source "$env_file"
 set +a
 
 asset_path="$("$repo_root/scripts/package_macos_release.sh" | tail -n 1)"
-python3 "$repo_root/scripts/upload_github_release_asset.py" "$asset_path" "${1:-}"
+if [[ $# -gt 0 ]]; then
+  python3 "$repo_root/scripts/upload_github_release_asset.py" "$asset_path" "$1"
+else
+  python3 "$repo_root/scripts/upload_github_release_asset.py" "$asset_path"
+fi
