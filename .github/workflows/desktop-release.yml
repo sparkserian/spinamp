@@ -1,0 +1,37 @@
+name: Desktop Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-windows-artifact:
+    name: Release Windows Artifact
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.1'
+    - run: flutter pub get
+    - shell: pwsh
+      run: ./scripts/package_windows_release.ps1 -FlutterBin flutter
+    - id: version
+      shell: bash
+      run: echo "artifact_version=$(scripts/release_version.sh artifact)" >> "$GITHUB_OUTPUT"
+    - name: Ensure GitHub release exists
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        tag="${GITHUB_REF_NAME}"
+        if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "$tag" --generate-notes
+        fi
+    - name: Upload Windows release asset
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release upload "${GITHUB_REF_NAME}" dist/*.zip --repo "$GITHUB_REPOSITORY" --clobber
