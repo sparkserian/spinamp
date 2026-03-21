@@ -29,7 +29,7 @@ if (-not (Test-Path $ExePath)) {
     throw "Expected Windows executable was not produced at $ExePath"
 }
 
-& dart run msix:create --output-path $DistDir --output-name $ArtifactName
+& dart run msix:create --output-path $DistDir --output-name $ArtifactName --build-windows false --install-certificate false
 
 if (-not (Test-Path $ArtifactPath)) {
     throw "Expected Windows installer was not produced at $ArtifactPath"
