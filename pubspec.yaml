@@ -164,6 +164,7 @@ flutter_launcher_icons:
 
 msix_config:
   display_name: Spinamp
+  publisher: CN=Finamp, OU=Finamp, O=Jellyfin, L=Frankfurt, S=Some-State, C=DE
   publisher_display_name: Jellyfin
   identity_name: com.unicornsonlsd.finamp
   msix_version: 0.9.9.109
