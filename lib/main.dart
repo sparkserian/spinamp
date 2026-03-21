@@ -115,7 +115,7 @@ void main() async {
       WindowOptions windowOptions = const WindowOptions(
         size: Size(1200, 800),
         center: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color(0xFFF2F2F2),
         skipTaskbar: false,
         titleBarStyle: TitleBarStyle.normal,
         minimumSize: Size(400, 250),
@@ -440,8 +440,136 @@ class _FinampState extends ConsumerState<Finamp> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: GestureDetector(
+    final shouldDismissFocusOnBackgroundTap =
+        Platform.isAndroid || Platform.isIOS;
+
+    Widget buildMaterialAppShell() {
+      return ValueListenableBuilder(
+        valueListenable: LocaleHelper.localeListener,
+        builder: (_, __, ___) {
+          return ValueListenableBuilder<Box<ThemeMode>>(
+            valueListenable: ThemeModeHelper.themeModeListener,
+            builder: (_, box, __) {
+              return MaterialApp(
+                title: kProductName,
+                routes: {
+                  SplashScreen.routeName: (context) => const SplashScreen(),
+                  LoginScreen.routeName: (context) => const LoginScreen(),
+                  ViewSelector.routeName: (context) => const ViewSelector(),
+                  MusicScreen.routeName: (context) => const MusicScreen(),
+                  AlbumScreen.routeName: (context) => const AlbumScreen(),
+                  ArtistScreen.routeName: (context) => const ArtistScreen(),
+                  AddToPlaylistScreen.routeName: (context) =>
+                      const AddToPlaylistScreen(),
+                  PlayerScreen.routeName: (context) => const PlayerScreen(
+                      key: ValueKey(PlayerScreen.routeName)),
+                  DownloadsScreen.routeName: (context) =>
+                      const DownloadsScreen(),
+                  ActiveDownloadsScreen.routeName: (context) =>
+                      const ActiveDownloadsScreen(),
+                  PlaybackHistoryScreen.routeName: (context) =>
+                      const PlaybackHistoryScreen(),
+                  LogsScreen.routeName: (context) => const LogsScreen(),
+                  QueueRestoreScreen.routeName: (context) =>
+                      const QueueRestoreScreen(),
+                  SettingsScreen.routeName: (context) =>
+                      const SettingsScreen(),
+                  TranscodingSettingsScreen.routeName: (context) =>
+                      const TranscodingSettingsScreen(),
+                  DownloadsLocationScreen.routeName: (context) =>
+                      const DownloadsLocationScreen(),
+                  DownloadsSettingsScreen.routeName: (context) =>
+                      const DownloadsSettingsScreen(),
+                  AddDownloadLocationScreen.routeName: (context) =>
+                      const AddDownloadLocationScreen(),
+                  AudioServiceSettingsScreen.routeName: (context) =>
+                      const AudioServiceSettingsScreen(),
+                  VolumeNormalizationSettingsScreen.routeName: (context) =>
+                      const VolumeNormalizationSettingsScreen(),
+                  InteractionSettingsScreen.routeName: (context) =>
+                      const InteractionSettingsScreen(),
+                  TabsSettingsScreen.routeName: (context) =>
+                      const TabsSettingsScreen(),
+                  LayoutSettingsScreen.routeName: (context) =>
+                      const LayoutSettingsScreen(),
+                  CustomizationSettingsScreen.routeName: (context) =>
+                      const CustomizationSettingsScreen(),
+                  PlayerSettingsScreen.routeName: (context) =>
+                      const PlayerSettingsScreen(),
+                  LanguageSelectionScreen.routeName: (context) =>
+                      const LanguageSelectionScreen(),
+                },
+                initialRoute: SplashScreen.routeName,
+                builder: buildPlayerSplitScreenScaffold,
+                theme: ThemeData(
+                  brightness: Brightness.light,
+                  colorScheme: lightColorScheme,
+                  appBarTheme: const AppBarTheme(
+                    systemOverlayStyle: SystemUiOverlayStyle(
+                      statusBarBrightness: Brightness.light,
+                      statusBarIconBrightness: Brightness.dark,
+                    ),
+                  ),
+                  snackBarTheme: const SnackBarThemeData(
+                    //TODO get rid of floating action buttons and re-enable the floating behavior and insetPadding
+                    // behavior: SnackBarBehavior.floating,
+                    elevation: 10.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                    ),
+                    // insetPadding: EdgeInsets.symmetric(
+                    //   horizontal: 12.0,
+                    //   vertical: 0.0,
+                    // ),
+                    dismissDirection: DismissDirection.horizontal,
+                  ),
+                ),
+                darkTheme: ThemeData(
+                  brightness: Brightness.dark,
+                  colorScheme: darkColorScheme,
+                  snackBarTheme: const SnackBarThemeData(
+                    //TODO get rid of floating action buttons and re-enable the floating behavior and insetPadding
+                    // behavior: SnackBarBehavior.floating,
+                    elevation: 10.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                    ),
+                    // insetPadding: EdgeInsets.symmetric(
+                    //   horizontal: 12.0,
+                    //   vertical: 0.0,
+                    // ),
+                    dismissDirection: DismissDirection.horizontal,
+                  ),
+                ),
+                scrollBehavior: FinampScrollBehavior(),
+                themeMode: box.get("ThemeMode"),
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: AppLocalizations.supportedLocales,
+                // We awkwardly put English as the first supported locale so
+                // that basicLocaleListResolution falls back to it instead of
+                // the first language in supportedLocales (Arabic as of writing)
+                localeListResolutionCallback: (locales, supportedLocales) =>
+                    basicLocaleListResolution(
+                        locales, [const Locale("en")].followedBy(supportedLocales)),
+                locale: LocaleHelper.locale,
+                scaffoldMessengerKey: GlobalSnackbar.materialAppScaffoldKey,
+                navigatorKey: GlobalSnackbar.materialAppNavigatorKey,
+              );
+            },
+          );
+        },
+      );
+    }
+
+    Widget shell = buildMaterialAppShell();
+
+    if (shouldDismissFocusOnBackgroundTap) {
+      shell = GestureDetector(
         onTap: () {
           FocusScopeNode currentFocus = FocusScope.of(context);
 
@@ -450,130 +578,12 @@ class _FinampState extends ConsumerState<Finamp> with WindowListener {
             FocusManager.instance.primaryFocus?.unfocus();
           }
         },
-        // We awkwardly have two ValueListenableBuilders for the locale and
-        // theme because I didn't want every FinampSettings change to rebuild
-        // the whole app
-        child: ValueListenableBuilder(
-          valueListenable: LocaleHelper.localeListener,
-          builder: (_, __, ___) {
-            return ValueListenableBuilder<Box<ThemeMode>>(
-              valueListenable: ThemeModeHelper.themeModeListener,
-              builder: (_, box, __) {
-                return MaterialApp(
-                  title: kProductName,
-                  routes: {
-                    SplashScreen.routeName: (context) => const SplashScreen(),
-                    LoginScreen.routeName: (context) => const LoginScreen(),
-                    ViewSelector.routeName: (context) => const ViewSelector(),
-                    MusicScreen.routeName: (context) => const MusicScreen(),
-                    AlbumScreen.routeName: (context) => const AlbumScreen(),
-                    ArtistScreen.routeName: (context) => const ArtistScreen(),
-                    AddToPlaylistScreen.routeName: (context) =>
-                        const AddToPlaylistScreen(),
-                    PlayerScreen.routeName: (context) => const PlayerScreen(
-                        key: ValueKey(PlayerScreen.routeName)),
-                    DownloadsScreen.routeName: (context) =>
-                        const DownloadsScreen(),
-                    ActiveDownloadsScreen.routeName: (context) =>
-                        const ActiveDownloadsScreen(),
-                    PlaybackHistoryScreen.routeName: (context) =>
-                        const PlaybackHistoryScreen(),
-                    LogsScreen.routeName: (context) => const LogsScreen(),
-                    QueueRestoreScreen.routeName: (context) =>
-                        const QueueRestoreScreen(),
-                    SettingsScreen.routeName: (context) =>
-                        const SettingsScreen(),
-                    TranscodingSettingsScreen.routeName: (context) =>
-                        const TranscodingSettingsScreen(),
-                    DownloadsLocationScreen.routeName: (context) =>
-                        const DownloadsLocationScreen(),
-                    DownloadsSettingsScreen.routeName: (context) =>
-                        const DownloadsSettingsScreen(),
-                    AddDownloadLocationScreen.routeName: (context) =>
-                        const AddDownloadLocationScreen(),
-                    AudioServiceSettingsScreen.routeName: (context) =>
-                        const AudioServiceSettingsScreen(),
-                    VolumeNormalizationSettingsScreen.routeName: (context) =>
-                        const VolumeNormalizationSettingsScreen(),
-                    InteractionSettingsScreen.routeName: (context) =>
-                        const InteractionSettingsScreen(),
-                    TabsSettingsScreen.routeName: (context) =>
-                        const TabsSettingsScreen(),
-                    LayoutSettingsScreen.routeName: (context) =>
-                        const LayoutSettingsScreen(),
-                    CustomizationSettingsScreen.routeName: (context) =>
-                        const CustomizationSettingsScreen(),
-                    PlayerSettingsScreen.routeName: (context) =>
-                        const PlayerSettingsScreen(),
-                    LanguageSelectionScreen.routeName: (context) =>
-                        const LanguageSelectionScreen(),
-                  },
-                  initialRoute: SplashScreen.routeName,
-                  builder: buildPlayerSplitScreenScaffold,
-                  theme: ThemeData(
-                    brightness: Brightness.light,
-                    colorScheme: lightColorScheme,
-                    appBarTheme: const AppBarTheme(
-                      systemOverlayStyle: SystemUiOverlayStyle(
-                        statusBarBrightness: Brightness.light,
-                        statusBarIconBrightness: Brightness.dark,
-                      ),
-                    ),
-                    snackBarTheme: const SnackBarThemeData(
-                      //TODO get rid of floating action buttons and re-enable the floating behavior and insetPadding
-                      // behavior: SnackBarBehavior.floating,
-                      elevation: 10.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                      ),
-                      // insetPadding: EdgeInsets.symmetric(
-                      //   horizontal: 12.0,
-                      //   vertical: 0.0,
-                      // ),
-                      dismissDirection: DismissDirection.horizontal,
-                    ),
-                  ),
-                  darkTheme: ThemeData(
-                    brightness: Brightness.dark,
-                    colorScheme: darkColorScheme,
-                    snackBarTheme: const SnackBarThemeData(
-                      //TODO get rid of floating action buttons and re-enable the floating behavior and insetPadding
-                      // behavior: SnackBarBehavior.floating,
-                      elevation: 10.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                      ),
-                      // insetPadding: EdgeInsets.symmetric(
-                      //   horizontal: 12.0,
-                      //   vertical: 0.0,
-                      // ),
-                      dismissDirection: DismissDirection.horizontal,
-                    ),
-                  ),
-                  scrollBehavior: FinampScrollBehavior(),
-                  themeMode: box.get("ThemeMode"),
-                  localizationsDelegates: const [
-                    AppLocalizations.delegate,
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalWidgetsLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                  ],
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  // We awkwardly put English as the first supported locale so
-                  // that basicLocaleListResolution falls back to it instead of
-                  // the first language in supportedLocales (Arabic as of writing)
-                  localeListResolutionCallback: (locales, supportedLocales) =>
-                      basicLocaleListResolution(locales,
-                          [const Locale("en")].followedBy(supportedLocales)),
-                  locale: LocaleHelper.locale,
-                  scaffoldMessengerKey: GlobalSnackbar.materialAppScaffoldKey,
-                  navigatorKey: GlobalSnackbar.materialAppNavigatorKey,
-                );
-              },
-            );
-          },
-        ),
-      ),
+        child: shell,
+      );
+    }
+
+    return ProviderScope(
+      child: shell,
     );
   }
 

@@ -180,186 +180,182 @@ class _DesktopHomeScreenState extends State<DesktopHomeScreen> {
       builder: (context, snapshot) {
         final data = snapshot.data;
 
-        return RefreshIndicator(
-          onRefresh: _refresh,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics()),
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
-                sliver: SliverToBoxAdapter(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final stacked = constraints.maxWidth < 1080;
-                      if (stacked) {
-                        return Column(
-                          children: [
-                            _HomeOverviewCard(
-                              featuredItem: data?.heroItem,
-                              onOpenLibrary: widget.onOpenLibrary,
-                              onOpenSpotlightItem: _openItem,
-                              onOpenTab: widget.onOpenTab,
-                              onOpenPlayer: () => Navigator.of(context)
-                                  .pushNamed(PlayerScreen.routeName),
-                              onOpenHistory: () => Navigator.of(context)
-                                  .pushNamed(PlaybackHistoryScreen.routeName),
-                              onShuffleAll: () async {
-                                await _audioServiceHelper.shuffleAll(
-                                  FinampSettingsHelper
-                                      .finampSettings.onlyShowFavourite,
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            _QueueSnapshotCard(
-                              onOpenPlayer: () {
-                                Navigator.of(context)
-                                    .pushNamed(PlayerScreen.routeName);
-                              },
-                            ),
-                          ],
-                        );
-                      }
-
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        return CustomScrollView(
+          physics: const ClampingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+              sliver: SliverToBoxAdapter(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final stacked = constraints.maxWidth < 1080;
+                    if (stacked) {
+                      return Column(
                         children: [
-                          Expanded(
-                            flex: 6,
-                            child: _HomeOverviewCard(
-                              featuredItem: data?.heroItem,
-                              onOpenLibrary: widget.onOpenLibrary,
-                              onOpenSpotlightItem: _openItem,
-                              onOpenTab: widget.onOpenTab,
-                              onOpenPlayer: () => Navigator.of(context)
-                                  .pushNamed(PlayerScreen.routeName),
-                              onOpenHistory: () => Navigator.of(context)
-                                  .pushNamed(PlaybackHistoryScreen.routeName),
-                              onShuffleAll: () async {
-                                await _audioServiceHelper.shuffleAll(
-                                  FinampSettingsHelper
-                                      .finampSettings.onlyShowFavourite,
-                                );
-                              },
-                            ),
+                          _HomeOverviewCard(
+                            featuredItem: data?.heroItem,
+                            onOpenLibrary: widget.onOpenLibrary,
+                            onOpenSpotlightItem: _openItem,
+                            onOpenTab: widget.onOpenTab,
+                            onOpenPlayer: () => Navigator.of(context)
+                                .pushNamed(PlayerScreen.routeName),
+                            onOpenHistory: () => Navigator.of(context)
+                                .pushNamed(PlaybackHistoryScreen.routeName),
+                            onShuffleAll: () async {
+                              await _audioServiceHelper.shuffleAll(
+                                FinampSettingsHelper
+                                    .finampSettings.onlyShowFavourite,
+                              );
+                            },
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 4,
-                            child: _QueueSnapshotCard(
-                              onOpenPlayer: () {
-                                Navigator.of(context)
-                                    .pushNamed(PlayerScreen.routeName);
-                              },
-                            ),
+                          const SizedBox(height: 16),
+                          _QueueSnapshotCard(
+                            onOpenPlayer: () {
+                              Navigator.of(context)
+                                  .pushNamed(PlayerScreen.routeName);
+                            },
                           ),
                         ],
                       );
-                    },
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 6,
+                          child: _HomeOverviewCard(
+                            featuredItem: data?.heroItem,
+                            onOpenLibrary: widget.onOpenLibrary,
+                            onOpenSpotlightItem: _openItem,
+                            onOpenTab: widget.onOpenTab,
+                            onOpenPlayer: () => Navigator.of(context)
+                                .pushNamed(PlayerScreen.routeName),
+                            onOpenHistory: () => Navigator.of(context)
+                                .pushNamed(PlaybackHistoryScreen.routeName),
+                            onShuffleAll: () async {
+                              await _audioServiceHelper.shuffleAll(
+                                FinampSettingsHelper
+                                    .finampSettings.onlyShowFavourite,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 4,
+                          child: _QueueSnapshotCard(
+                            onOpenPlayer: () {
+                              Navigator.of(context)
+                                  .pushNamed(PlayerScreen.routeName);
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                data == null)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (snapshot.hasError)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(28, 24, 28, 32),
+                sliver: SliverToBoxAdapter(
+                  child: _ErrorPanel(onRetry: _refresh),
+                ),
+              )
+            else ...[
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _FreshTracksShelf(
+                    tracks: data!.freshTracks,
+                    title:
+                        data.isOffline ? "Downloaded tracks" : "Fresh tracks",
+                    subtitle:
+                        "Short picks you can start immediately without leaving home.",
+                    onPlayTrack: _playFreshTrack,
                   ),
                 ),
               ),
-              if (snapshot.connectionState == ConnectionState.waiting &&
-                  data == null)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (snapshot.hasError)
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(28, 24, 28, 32),
-                  sliver: SliverToBoxAdapter(
-                    child: _ErrorPanel(onRetry: _refresh),
-                  ),
-                )
-              else ...[
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: _FreshTracksShelf(
-                      tracks: data!.freshTracks,
-                      title:
-                          data.isOffline ? "Downloaded tracks" : "Fresh tracks",
-                      subtitle:
-                          "Short picks you can start immediately without leaving home.",
-                      onPlayTrack: _playFreshTrack,
-                    ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _HomeShelf(
+                    title: data.isOffline
+                        ? "Downloaded albums"
+                        : "Recently added albums",
+                    subtitle: "A fast way back into your library.",
+                    emptyText: "No albums available yet.",
+                    icon: TablerIcons.disc,
+                    items: data.latestAlbums,
+                    onOpenTab: () => widget.onOpenTab(TabContentType.albums),
+                    onOpenItem: _openItem,
                   ),
                 ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _HomeShelf(
+                    title: data.isOffline
+                        ? "Downloaded artists"
+                        : "Favorite artists",
+                    subtitle:
+                        "Jump straight into the people you keep coming back to.",
+                    emptyText: data.isOffline
+                        ? "No downloaded artists yet."
+                        : "Mark artists as favorites to see them here.",
+                    icon: TablerIcons.microphone_2,
+                    items: data.favoriteArtists,
+                    onOpenTab: () => widget.onOpenTab(TabContentType.artists),
+                    onOpenItem: _openItem,
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _HomeShelf(
+                    title:
+                        data.isOffline ? "Downloaded playlists" : "Playlists",
+                    subtitle:
+                        "Personal mixes, editorials, and long-tail queues.",
+                    emptyText: "No playlists available.",
+                    icon: TablerIcons.playlist,
+                    items: data.playlists,
+                    onOpenTab: () =>
+                        widget.onOpenTab(TabContentType.playlists),
+                    onOpenItem: _openItem,
+                  ),
+                ),
+              ),
+              if (data.favoriteAlbums.isNotEmpty)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
                   sliver: SliverToBoxAdapter(
                     child: _HomeShelf(
-                      title: data.isOffline
-                          ? "Downloaded albums"
-                          : "Recently added albums",
-                      subtitle: "A fast way back into your library.",
-                      emptyText: "No albums available yet.",
-                      icon: TablerIcons.disc,
-                      items: data.latestAlbums,
-                      onOpenTab: () => widget.onOpenTab(TabContentType.albums),
-                      onOpenItem: _openItem,
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: _HomeShelf(
-                      title: data.isOffline
-                          ? "Downloaded artists"
-                          : "Favorite artists",
+                      title: "Favorite albums",
                       subtitle:
-                          "Jump straight into the people you keep coming back to.",
-                      emptyText: data.isOffline
-                          ? "No downloaded artists yet."
-                          : "Mark artists as favorites to see them here.",
-                      icon: TablerIcons.microphone_2,
-                      items: data.favoriteArtists,
-                      onOpenTab: () => widget.onOpenTab(TabContentType.artists),
-                      onOpenItem: _openItem,
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: _HomeShelf(
-                      title:
-                          data.isOffline ? "Downloaded playlists" : "Playlists",
-                      subtitle:
-                          "Personal mixes, editorials, and long-tail queues.",
-                      emptyText: "No playlists available.",
-                      icon: TablerIcons.playlist,
-                      items: data.playlists,
+                          "A tighter shelf for the records you keep close.",
+                      emptyText: "No favorite albums yet.",
+                      icon: TablerIcons.heart,
+                      items: data.favoriteAlbums,
                       onOpenTab: () =>
-                          widget.onOpenTab(TabContentType.playlists),
+                          widget.onOpenTab(TabContentType.albums),
                       onOpenItem: _openItem,
                     ),
                   ),
                 ),
-                if (data.favoriteAlbums.isNotEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(28, 28, 28, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _HomeShelf(
-                        title: "Favorite albums",
-                        subtitle:
-                            "A tighter shelf for the records you keep close.",
-                        emptyText: "No favorite albums yet.",
-                        icon: TablerIcons.heart,
-                        items: data.favoriteAlbums,
-                        onOpenTab: () =>
-                            widget.onOpenTab(TabContentType.albums),
-                        onOpenItem: _openItem,
-                      ),
-                    ),
-                  ),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
-              ],
+              const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
             ],
-          ),
+          ],
         );
       },
     );
@@ -676,16 +672,25 @@ class _CompactSpotlightCard extends StatelessWidget {
       ),
     );
 
-    return Material(
-      color: colorScheme.surfaceContainerHighest.withOpacity(0.55),
-      borderRadius: BorderRadius.circular(22),
-      child: onTap == null
-          ? child
-          : InkWell(
-              borderRadius: BorderRadius.circular(22),
-              onTap: onTap,
-              child: child,
-            ),
+    final surface = DecoratedBox(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.55),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: child,
+    );
+
+    if (onTap == null) {
+      return surface;
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: surface,
+      ),
     );
   }
 }
@@ -1080,60 +1085,56 @@ class _HomeItemTileState extends State<_HomeItemTile> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         transform: Matrix4.translationValues(0, _hovering ? -4 : 0, 0),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(22),
-            onTap: widget.onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              Colors.black.withOpacity(_hovering ? 0.16 : 0.08),
-                          blurRadius: _hovering ? 24 : 18,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: AlbumImage(
-                      item: widget.item,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(_hovering ? 0.16 : 0.08),
+                        blurRadius: _hovering ? 24 : 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
+                  child: AlbumImage(
+                    item: widget.item,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.item.name ?? "Unknown item",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
                   Text(
-                    widget.item.name ?? "Unknown item",
+                    subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.color
+                              ?.withOpacity(0.72),
+                        ),
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.color
-                                ?.withOpacity(0.72),
-                          ),
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
           ),
         ),
@@ -1153,74 +1154,79 @@ class _FreshTrackTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surface.withOpacity(0.55),
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 64,
-                child: AlbumImage(
-                  item: track,
-                  borderRadius: BorderRadius.circular(14),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 64,
+                  child: AlbumImage(
+                    item: track,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      track.name ?? "Unknown track",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      track.albumArtist ??
-                          track.artists?.join(", ") ??
-                          "Unknown artist",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.color
-                                ?.withOpacity(0.72),
-                          ),
-                    ),
-                  ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        track.name ?? "Unknown track",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        track.albumArtist ??
+                            track.artists?.join(", ") ??
+                            "Unknown artist",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color
+                                  ?.withOpacity(0.72),
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withOpacity(0.9),
-                  shape: BoxShape.circle,
+                const SizedBox(width: 10),
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withOpacity(0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    TablerIcons.player_play_filled,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
-                child: Icon(
-                  TablerIcons.player_play_filled,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

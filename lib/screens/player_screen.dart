@@ -282,80 +282,84 @@ class _PlayerScreenContent extends ConsumerWidget {
         ),
         // Required for sleep timer input
         resizeToAvoidBottomInset: false, extendBodyBehindAppBar: true,
-        body: Stack(
-          children: [
-            if (FinampSettingsHelper.finampSettings.useCoverAsBackground)
-              const BlurredPlayerScreenBackground(),
-            SafeArea(
-              minimum: EdgeInsets.only(top: toolbarHeight),
-              child: LayoutBuilder(builder: (context, constraints) {
-                if (MediaQuery.of(context).orientation ==
-                    Orientation.landscape) {
-                  controller.updateLayoutLandscape(
-                      Size(constraints.maxWidth, constraints.maxHeight));
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                            padding:
-                                EdgeInsets.all(constraints.maxHeight * 0.03),
+        body: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: (_) {},
+          child: Stack(
+            children: [
+              if (FinampSettingsHelper.finampSettings.useCoverAsBackground)
+                const BlurredPlayerScreenBackground(),
+              SafeArea(
+                minimum: EdgeInsets.only(top: toolbarHeight),
+                child: LayoutBuilder(builder: (context, constraints) {
+                  if (MediaQuery.of(context).orientation ==
+                      Orientation.landscape) {
+                    controller.updateLayoutLandscape(
+                        Size(constraints.maxWidth, constraints.maxHeight));
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                              padding:
+                                  EdgeInsets.all(constraints.maxHeight * 0.03),
+                              child: const PlayerScreenAlbumImage()),
+                        ),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                              maxWidth: controller.getTarget().width),
+                          child: Column(
+                            children: [
+                              const Spacer(flex: 4),
+                              SongNameContent(controller),
+                              const Spacer(flex: 4),
+                              ControlArea(controller),
+                              if (controller
+                                  .shouldShow(PlayerHideable.queueButton))
+                                const Spacer(flex: 10),
+                              if (controller
+                                  .shouldShow(PlayerHideable.queueButton))
+                                _buildBottomActions(context, controller),
+                              const Spacer(
+                                flex: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    controller.updateLayoutPortrait(
+                        Size(constraints.maxWidth, constraints.maxHeight));
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                            height: min(
+                                constraints.maxHeight -
+                                    controller.getTarget().height,
+                                constraints.maxWidth),
+                            width: constraints.maxWidth,
                             child: const PlayerScreenAlbumImage()),
-                      ),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                            maxWidth: controller.getTarget().width),
-                        child: Column(
-                          children: [
-                            const Spacer(flex: 4),
-                            SongNameContent(controller),
-                            const Spacer(flex: 4),
-                            ControlArea(controller),
-                            if (controller
-                                .shouldShow(PlayerHideable.queueButton))
-                              const Spacer(flex: 10),
-                            if (controller
-                                .shouldShow(PlayerHideable.queueButton))
-                              _buildBottomActions(context, controller),
-                            const Spacer(
-                              flex: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                } else {
-                  controller.updateLayoutPortrait(
-                      Size(constraints.maxWidth, constraints.maxHeight));
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                          height: min(
-                              constraints.maxHeight -
-                                  controller.getTarget().height,
-                              constraints.maxWidth),
-                          width: constraints.maxWidth,
-                          child: const PlayerScreenAlbumImage()),
-                      SongNameContent(controller),
-                      ControlArea(controller),
-                      if (controller.shouldShow(PlayerHideable.queueButton))
-                        _buildBottomActions(
-                          context,
-                          controller,
-                          isLyricsLoading: isLyricsLoading,
-                          isLyricsAvailable: isLyricsAvailable,
-                        ),
-                      if (!controller.shouldShow(PlayerHideable.queueButton))
-                        const SizedBox(
-                          height: 5,
-                        )
-                    ],
-                  );
-                }
-              }),
-            ),
-          ],
+                        SongNameContent(controller),
+                        ControlArea(controller),
+                        if (controller.shouldShow(PlayerHideable.queueButton))
+                          _buildBottomActions(
+                            context,
+                            controller,
+                            isLyricsLoading: isLyricsLoading,
+                            isLyricsAvailable: isLyricsAvailable,
+                          ),
+                        if (!controller.shouldShow(PlayerHideable.queueButton))
+                          const SizedBox(
+                            height: 5,
+                          )
+                      ],
+                    );
+                  }
+                }),
+              ),
+            ],
+          ),
         ),
       ),
     );

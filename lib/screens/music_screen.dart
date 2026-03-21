@@ -442,53 +442,59 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
                       ? getFloatingActionButton(sortedTabs.toList())
                       : null,
                 ),
-                body: Row(
-                  children: [
-                    if (showDesktopSidebar) ...[
-                      SizedBox(
-                        width: 280,
-                        child: MusicScreenDrawer(
-                          sidebar: true,
-                          selectedSection: effectiveSection,
-                          onSectionSelected: _setDesktopSection,
+                body: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (_) {},
+                  child: Row(
+                    children: [
+                      if (showDesktopSidebar) ...[
+                        SizedBox(
+                          width: 280,
+                          child: MusicScreenDrawer(
+                            sidebar: true,
+                            selectedSection: effectiveSection,
+                            onSectionSelected: _setDesktopSection,
+                          ),
                         ),
-                      ),
-                      VerticalDivider(
-                        width: 1,
-                        thickness: 1,
-                        color: Theme.of(context).dividerColor.withOpacity(0.45),
+                        VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color:
+                              Theme.of(context).dividerColor.withOpacity(0.45),
+                        ),
+                      ],
+                      Expanded(
+                        child: isDesktopPlatform &&
+                                effectiveSection ==
+                                    MusicScreenSidebarSection.home
+                            ? DesktopHomeScreen(
+                                refresh: _homeRefresh,
+                                onOpenLibrary: () => _setDesktopSection(
+                                  MusicScreenSidebarSection.library,
+                                ),
+                                onOpenTab: (tab) =>
+                                    _openDesktopTab(sortedTabs.toList(), tab),
+                              )
+                            : TabBarView(
+                                controller: _tabController,
+                                physics: FinampSettingsHelper
+                                        .finampSettings.disableGesture
+                                    ? const NeverScrollableScrollPhysics()
+                                    : const AlwaysScrollableScrollPhysics(),
+                                dragStartBehavior: DragStartBehavior.down,
+                                children: sortedTabs
+                                    .map((tabType) => MusicScreenTabView(
+                                          tabContentType: tabType,
+                                          searchTerm: searchQuery,
+                                          view: _finampUserHelper
+                                              .currentUser?.currentView,
+                                          refresh: refreshMap[tabType],
+                                        ))
+                                    .toList(),
+                              ),
                       ),
                     ],
-                    Expanded(
-                      child: isDesktopPlatform &&
-                              effectiveSection == MusicScreenSidebarSection.home
-                          ? DesktopHomeScreen(
-                              refresh: _homeRefresh,
-                              onOpenLibrary: () => _setDesktopSection(
-                                MusicScreenSidebarSection.library,
-                              ),
-                              onOpenTab: (tab) =>
-                                  _openDesktopTab(sortedTabs.toList(), tab),
-                            )
-                          : TabBarView(
-                              controller: _tabController,
-                              physics: FinampSettingsHelper
-                                      .finampSettings.disableGesture
-                                  ? const NeverScrollableScrollPhysics()
-                                  : const AlwaysScrollableScrollPhysics(),
-                              dragStartBehavior: DragStartBehavior.down,
-                              children: sortedTabs
-                                  .map((tabType) => MusicScreenTabView(
-                                        tabContentType: tabType,
-                                        searchTerm: searchQuery,
-                                        view: _finampUserHelper
-                                            .currentUser?.currentView,
-                                        refresh: refreshMap[tabType],
-                                      ))
-                                  .toList(),
-                            ),
-                    ),
-                  ],
+                  ),
                 ),
               );
             },

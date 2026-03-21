@@ -7,6 +7,9 @@ class MainFlutterWindow: NSWindow {
     let windowFrame = self.frame
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
+    self.isMovableByWindowBackground = false
+    self.isOpaque = true
+    self.backgroundColor = NSColor.windowBackgroundColor
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
