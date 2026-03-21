@@ -35,12 +35,14 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
     with TickerProviderStateMixin {
   bool isSearching = false;
   bool _showShuffleFab = false;
+  bool _desktopSidebarExpanded = false;
   MusicScreenSidebarSection _desktopSection = MusicScreenSidebarSection.home;
   TextEditingController textEditingController = TextEditingController();
   String? searchQuery;
   final _musicScreenLogger = Logger("MusicScreen");
   final Map<TabContentType, MusicRefreshCallback> refreshMap = {};
   final _homeRefresh = MusicRefreshCallback();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   TabController? _tabController;
 
@@ -256,8 +258,10 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
           child: Builder(
             builder: (context) {
               final isDesktopPlatform = !Platform.isIOS && !Platform.isAndroid;
-              final showDesktopSidebar =
+              final canUseDesktopSidebar =
                   isDesktopPlatform && MediaQuery.sizeOf(context).width >= 1180;
+              final showDesktopSidebar =
+                  canUseDesktopSidebar && _desktopSidebarExpanded;
               final effectiveSection = isDesktopPlatform
                   ? _desktopSection
                   : MusicScreenSidebarSection.library;
@@ -269,10 +273,19 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
                       ? "Home"
                       : _finampUserHelper.currentUser?.currentView?.name ??
                           AppLocalizations.of(context)!.music;
+              void handleDrawerSectionSelected(
+                  MusicScreenSidebarSection section) {
+                _setDesktopSection(section);
+                if (!showDesktopSidebar && Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              }
 
               return Scaffold(
+                key: _scaffoldKey,
                 extendBody: true,
                 appBar: AppBar(
+                  automaticallyImplyLeading: !isDesktopPlatform,
                   titleSpacing:
                       0, // The surrounding iconButtons provide enough padding
                   title: isSearching
@@ -307,7 +320,33 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
                       ? BackButton(
                           onPressed: () => _stopSearching(),
                         )
-                      : null,
+                      : isDesktopPlatform
+                          ? IconButton(
+                              icon: Icon(
+                                canUseDesktopSidebar
+                                    ? (_desktopSidebarExpanded
+                                        ? Icons.menu_open
+                                        : Icons.menu)
+                                    : Icons.menu,
+                              ),
+                              tooltip: canUseDesktopSidebar
+                                  ? (_desktopSidebarExpanded
+                                      ? "Hide sidebar"
+                                      : "Show sidebar")
+                                  : MaterialLocalizations.of(context)
+                                      .openAppDrawerTooltip,
+                              onPressed: () {
+                                if (canUseDesktopSidebar) {
+                                  setState(() {
+                                    _desktopSidebarExpanded =
+                                        !_desktopSidebarExpanded;
+                                  });
+                                } else {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                }
+                              },
+                            )
+                          : null,
                   actions: isSearching
                       ? [
                           IconButton(
@@ -384,13 +423,14 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
                         ],
                 ),
                 bottomNavigationBar: const NowPlayingBar(),
-                drawer: showDesktopSidebar
+                drawer: isDesktopPlatform && canUseDesktopSidebar
                     ? null
                     : MusicScreenDrawer(
                         selectedSection:
                             isDesktopPlatform ? effectiveSection : null,
-                        onSectionSelected:
-                            isDesktopPlatform ? _setDesktopSection : null,
+                        onSectionSelected: isDesktopPlatform
+                            ? handleDrawerSectionSelected
+                            : null,
                       ),
                 floatingActionButton: Padding(
                   padding: EdgeInsets.only(
