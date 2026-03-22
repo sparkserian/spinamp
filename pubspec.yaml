@@ -1,5 +1,5 @@
 name: finamp
-description: An open source Jellyfin music player
+description: Spinamp, a desktop-first Jellyfin music player for macOS and Windows
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -10,11 +10,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # followed by an optional build number separated by a +.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# Desktop packaging reads the same version/build values from this file.
 version: 1.0.1+111
 
 environment:
@@ -152,8 +148,8 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
 flutter_launcher_icons:
-  android: true
-  ios: true
+  android: false
+  ios: false
   image_path: "assets/icon/icon_combined.png"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
   adaptive_icon_background: "#000B25"

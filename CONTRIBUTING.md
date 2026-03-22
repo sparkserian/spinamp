@@ -1,49 +1,66 @@
-# Contributing to Finamp
+# Contributing to Spinamp
 
-Thanks for your interest in contributing to Finamp! This document goes over how to get started on Finamp development, and other ways to contribute.
+Spinamp is a desktop-focused fork of Finamp for Jellyfin music playback on macOS and Windows.
 
-## Setting up a Development Environment
+## Development Environment
 
-Finamp is a fairly standard Flutter app, so all you have to do is [install Flutter](https://docs.flutter.dev/get-started/install). Once Flutter is installed, you should be able to run Finamp on emulators/real devices.
+Spinamp is a Flutter desktop app. Install Flutter first:
 
-### Android Keys
+- https://docs.flutter.dev/get-started/install
 
-To build release APKs, you need to set up a signing key for Android. To get that set up, follow [this guide](https://docs.flutter.dev/deployment/android#signing-the-app) from the Flutter documentation. Note that if you have Finamp installed already, your phone may panic because the key is different.
+Then work from the desktop targets in this repo:
 
-### The Arcane Arts (Code Generation)
+- `macos/`
+- `windows/`
 
-![A conversation between me and Chaphasilor. I say "did you try running (the Dart build command)?" They reply "I wasn't aware I need to use the arcane arts for this"](assets/arcane-arts.png)
+## Current Scope
 
-Because Dart doesn't support macros and stuff, a few dependencies rely on code generation which must be run manually. These dependencies are:
+This fork is not maintaining Android or iOS.
 
-* Hive - the database that Finamp uses for storing all data
-* `json_serializable` - For deserialising JSON into classes
-* Chopper - For talking to Jellyfin over HTTP
-    * This layer (`lib/services/jellyfin_api.dart`) is not used by the app directly. The user-facing API is located at `lib/services/jellyfin_api_helper.dart`.
+Contributions are most useful when they improve:
 
-To rebuild these files, run `dart run build_runner build --delete-conflicting-outputs`. This must be done when:
+- macOS behavior
+- Windows behavior
+- desktop UI and interaction polish
+- Jellyfin playback stability
+- downloads/offline support
+- packaging and release automation
 
-* Modifying a class that is returned by Jellyfin (such as the classes in `lib/models/jellyfin_models.dart`)
-* Adding fields to a database class (annotated with `@HiveType`)
+## Code Generation
 
-If you don't rebuild generated files, you will encounter:
+Some dependencies rely on generated Dart files.
 
-* Settings not persisting
-* Hive errors on startup
-* Missing data when converting JSON to classes
+Run this when you change models or generated API/storage code:
 
-### Hive
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
 
-As said earlier, Finamp uses Hive for all data storage needs. If you're doing work that involves data storage, I recommend you read [the Hive docs](https://docs.hivedb.dev/#/). Please ensure that your changes work when upgrading Finamp from the current release to your changes, as not handling upgrades will cause the app to crash. When downgrading, you will have to wipe your app data if any changes were made to Hive.
+This applies especially to:
 
-When creating new types, note that you'll also have to register an adapter in `main.dart`. After code generation, there should be a class called `[YourType]Adapter`, which you can initialise in `setupHive`.
+- Hive adapters
+- `json_serializable`
+- Chopper API files
 
-## The Redesign
+If you skip generation work, you can get:
 
-The biggest main piece of work being done on Finamp at the moment is the redesign. The relevant issue can be found [here](https://github.com/jmshrv/finamp/issues/220). The `redesign` branch has diverged a lot from `main`, but I try to keep it updated. If you're struggling to decide what to work on, the redesign is a good place to look :)
+- startup failures
+- settings not persisting
+- JSON parsing problems
 
-## Translating
+## Storage and Migrations
 
-Finamp uses Weblate to manage translations: **https://hosted.weblate.org/engage/finamp/**
+Spinamp uses Hive and Isar.
 
-Feel free to add new languages if yours isn't there yet. If you have any questions, such as the context of a string, you can ask in the [Translation Discussions](https://github.com/jmshrv/finamp/discussions/categories/translations).
+If you change persisted models, make sure upgrades from an existing install still work cleanly. Breaking stored data without a migration will cause app startup failures or corrupted state.
+
+## Releases
+
+Release docs:
+
+- [RELEASING.md](./RELEASING.md)
+- [MANUAL_RELEASE.md](./MANUAL_RELEASE.md)
+
+## Translations
+
+This fork has not prioritized translation workflow changes yet. If you touch localization, keep changes compatible with the existing Flutter localization setup in `lib/l10n/`.

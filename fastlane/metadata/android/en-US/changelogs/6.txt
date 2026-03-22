@@ -1,1 +1,0 @@
-This release just adds required metadata for the F-Droid release.
