@@ -36,6 +36,7 @@ import 'package:window_manager/window_manager.dart';
 import 'components/LogsScreen/copy_logs_button.dart';
 import 'components/LogsScreen/share_logs_button.dart';
 import 'components/PlayerScreen/player_split_screen_scaffold.dart';
+import 'components/desktop_playback_shortcut_scope.dart';
 import 'components/global_snackbar.dart';
 import 'config/product_config.dart';
 import 'models/finamp_models.dart';
@@ -583,7 +584,9 @@ class _FinampState extends ConsumerState<Finamp> with WindowListener {
     }
 
     return ProviderScope(
-      child: shell,
+      child: (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+          ? DesktopPlaybackShortcutScope(child: shell)
+          : shell,
     );
   }
 

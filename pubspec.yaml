@@ -11,7 +11,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
 # Desktop packaging reads the same version/build values from this file.
-version: 1.0.1+111
+version: 1.0.2+112
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -163,7 +163,7 @@ msix_config:
   publisher: CN=Finamp, OU=Finamp, O=Jellyfin, L=Frankfurt, S=Some-State, C=DE
   publisher_display_name: Jellyfin
   identity_name: com.unicornsonlsd.finamp
-  msix_version: 1.0.1.111
+  msix_version: 1.0.2.112
   logo_path: ./images/finamp_cropped.png
   capabilities: internetClientServer
   enable_at_startup: true

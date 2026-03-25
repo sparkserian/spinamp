@@ -15,6 +15,44 @@ permissions:
   contents: write
 
 jobs:
+  build-macos-artifact:
+    name: Release macOS Artifact
+    runs-on: macos-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.27.1'
+    - run: flutter pub get
+    - run: ./scripts/package_macos_release.sh
+    - name: Ensure GitHub release exists
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        tag="${RELEASE_TAG}"
+        if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "$tag" --generate-notes
+        fi
+    - name: Remove older macOS release assets
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release view "${RELEASE_TAG}" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[] | select(.name | test("^spinamp-macos-.*\\.dmg$")) | .name' |
+        while IFS= read -r asset; do
+          if [ -n "$asset" ]; then
+            gh release delete-asset "${RELEASE_TAG}" "$asset" --repo "$GITHUB_REPOSITORY" -y
+          fi
+        done
+    - name: Upload macOS release asset
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release upload "${RELEASE_TAG}" dist/*.dmg --repo "$GITHUB_REPOSITORY" --clobber
+
   build-windows-artifact:
     name: Release Windows Artifact
     runs-on: windows-latest
