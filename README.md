@@ -1,4 +1,4 @@
-![Spinamp desktop screenshots](./Showcase.png)
+![Spinamp desktop screenshots](./images/Showcase.png)
 
 # Spinamp
 
